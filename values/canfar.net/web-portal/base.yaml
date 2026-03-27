@@ -1,0 +1,6 @@
+# Shared defaults for web-portal (align keys with the Harbor chart).
+replicaCount: 1
+
+image:
+  repository: harbor.example.com/canfar/web-portal
+  tag: "0.1.0"
