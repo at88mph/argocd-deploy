@@ -7,7 +7,7 @@ This repository is the **Git source of truth** for Argo CD: `Application` (and o
 - [Domains](#domains)
 - [Repository layout](#repository-layout)
 - [Configuration placeholders](#configuration-placeholders)
-- [Installing with `bootstrap/`](#installing-with-bootstrap)
+- [Bootstrap install](#bootstrap-install)
 - [Adding a new Application](#adding-a-new-application)
 - [Charts (Harbor)](#charts-harbor)
 - [Git as source of truth](#git-as-source-of-truth)
@@ -18,74 +18,83 @@ This repository is the **Git source of truth** for Argo CD: `Application` (and o
 
 Three **independent** product lines—no shared multi-domain deployments:
 
-| Domain        | Path prefix (under `apps/`, `values/`, …) |
-| ------------- | ----------------------------------------- |
-| canfar.net    | `canfar.net/`                             |
-| cadc-ccda     | `cadc-ccda/`                              |
-| src.canfar.net | `src.canfar.net/`                        |
+| Domain         | Application manifests                         | Helm values                          |
+| -------------- | --------------------------------------------- | ------------------------------------ |
+| canfar.net     | `argocd/applications/canfar.net/<service>/`   | `helm/values/canfar.net/<service>/`  |
+| cadc-ccda      | `argocd/applications/cadc-ccda/<service>/`     | `helm/values/cadc-ccda/<service>/`   |
+| src.canfar.net | `argocd/applications/src.canfar.net/<service>/` | `helm/values/src.canfar.net/<service>/` |
 
-Each domain has its own web services, namespaces, and Argo configuration tree.
+Each domain has its own web services, namespaces, and Argo bootstrap parent. **Service names are not unique across domains** (for example `skaha` exists under both `canfar.net` and `src.canfar.net`), so this repo keeps a **domain segment** under `applications/` and `helm/values/` to avoid collisions. You can add other top-level trees under `argocd/` or `helm/` later (for example shared charts or config) without reshuffling apps.
 
 ## Repository layout
 
 ```text
+argocd-deploy.git/
 ├── README.md
-├── bootstrap/
-│   ├── canfar.net-application.yaml
-│   ├── cadc-ccda-application.yaml
-│   └── src.canfar.net-application.yaml
-├── apps/
-│   ├── canfar.net/
-│   ├── cadc-ccda/
-│   └── src.canfar.net/
-└── values/
-    ├── canfar.net/<service>/    # see services below
-    ├── cadc-ccda/example-app/ # template; copy for real services
-    └── src.canfar.net/<service>/
+├── argocd/
+│   ├── applications/
+│   │   ├── canfar.net/
+│   │   │   ├── <service>/
+│   │   │   │   ├── production.yaml
+│   │   │   │   ├── staging.yaml
+│   │   │   │   └── integration.yaml
+│   │   ├── cadc-ccda/
+│   │   └── src.canfar.net/
+│   └── bootstrap/
+│       ├── canfar.net.yaml
+│       ├── cadc-ccda.yaml
+│       └── src.canfar.net.yaml
+└── helm/
+    └── values/
+        ├── canfar.net/<service>/
+        ├── cadc-ccda/example-app/   # template; copy for real services
+        └── src.canfar.net/<service>/
 ```
 
-- **canfar.net:** `skaha`, `science-portal`, `arc`, `storage-ui`, `access`, `web-portal` — each has `*-integration.yaml`, `*-staging.yaml`, and an unsuffixed production manifest (e.g. `skaha.yaml`).
+- **canfar.net:** `skaha`, `science-portal`, `arc`, `storage-ui`, `access`, `web-portal` — each service directory has `integration.yaml`, `staging.yaml`, and `production.yaml`.
 - **src.canfar.net:** `skaha`, `science-portal`, `cavern`, `storage-ui`, `posix-mapper` — same pattern; Argo names/namespaces use the `src-` prefix (e.g. `src-skaha-integration`).
-- **cadc-ccda** ships a single **`example-app`** template (`example-app-integration.yaml`, `example-app-staging.yaml`, `example-app.yaml` + `values/cadc-ccda/example-app/`). Copy and rename for real services; `metadata.name` / namespaces use the **`cadc-example-app-*`** prefix.
+- **cadc-ccda** ships a single **`example-app`** template under `argocd/applications/cadc-ccda/example-app/` plus `helm/values/cadc-ccda/example-app/`. Copy and rename for real services; `metadata.name` / namespaces use the **`cadc-example-app-*`** prefix.
 
-> **TODO (maintainers):** The **`cadc-ccda`** domain **will** hold real applications in this repository eventually; which services those are is **not fixed yet**. When the application list is decided and committed under `apps/cadc-ccda/` and `values/cadc-ccda/`, **remove this note**.
+> **TODO (maintainers):** The **`cadc-ccda`** domain **will** hold real applications in this repository eventually; which services those are is **not fixed yet**. When the application list is decided and committed under `argocd/applications/cadc-ccda/` and `helm/values/cadc-ccda/`, **remove this note**.
 
 ## Configuration placeholders
 
-Before syncing, replace **placeholders** in `bootstrap/` and `apps/`:
+Before syncing, replace **placeholders** in `argocd/bootstrap/` and `argocd/applications/`:
 
 | Placeholder | Where |
 | ----------- | ----- |
 | `https://git.example.com/your-org/argo-deploy.git` | This repo’s clone URL (`repoURL` on Git sources) |
 | `oci://harbor.example.com/.../charts` and `chart: <name>` / `targetRevision` | Your Harbor OCI project, chart name (often the service name), and version |
-| `harbor.example.com/...` in `values/**/base.yaml` | Image registry paths your chart uses |
+| `harbor.example.com/...` in `helm/values/**/base.yaml` | Image registry paths your chart uses |
 
-Child Applications use Argo CD **multiple sources**: Helm chart from Harbor plus a Git source with `ref: values` so `helm.valueFiles` can reference `$values/values/<domain>/<service>/...` in this repository (Argo CD 2.6+).
+Child Applications use Argo CD **multiple sources**: Helm chart from Harbor plus a Git source with `ref: values` so `helm.valueFiles` can reference `$values/helm/values/<domain>/<service>/...` in this repository (Argo CD 2.6+).
 
-## Installing with `bootstrap/`
+## Bootstrap install
 
-Use this when you want Argo CD to **manage all child `Application` manifests** under a domain folder from Git (app-of-apps), instead of applying each child by hand.
+Bootstrap manifests live under `argocd/bootstrap/`. Use this when you want Argo CD to **manage all child `Application` manifests** under a domain tree from Git (app-of-apps), instead of applying each child by hand.
 
 **Prerequisites**
 
 1. [Prerequisites (operators)](#prerequisites-operators) are satisfied (Argo CD, this repo registered, Harbor if needed).
-2. In each file under `bootstrap/`, set `spec.source.repoURL` (and `targetRevision` if not `main`) to **this** repository—replace placeholders first ([Configuration placeholders](#configuration-placeholders)).
+2. In each file under `argocd/bootstrap/`, set `spec.source.repoURL` (and `targetRevision` if not `main`) to **this** repository—replace placeholders first ([Configuration placeholders](#configuration-placeholders)).
 
 **Install (once per domain you use)**
 
-Each domain has its own bootstrap file (there is **no** single root over all of `apps/`). Apply the ones you need:
+Each domain has its own bootstrap file (there is **no** single root over all of `argocd/applications/`). Apply the ones you need:
 
 ```bash
-kubectl apply -f bootstrap/canfar.net-application.yaml
-kubectl apply -f bootstrap/cadc-ccda-application.yaml
-kubectl apply -f bootstrap/src.canfar.net-application.yaml
+kubectl apply -f argocd/bootstrap/canfar.net.yaml
+kubectl apply -f argocd/bootstrap/cadc-ccda.yaml
+kubectl apply -f argocd/bootstrap/src.canfar.net.yaml
 ```
 
-That creates **one parent `Application`** per command. Each parent’s `spec.source.path` is **`apps/<domain>/`** (for example `apps/canfar.net`), **not** `bootstrap/`. After Argo **syncs** that parent, it reads Git and creates or updates **every** child `Application` YAML in that path. You do **not** `kubectl apply` each file under `apps/<domain>/` in day-to-day use.
+If you **already** had parents pointing at the old `apps/<domain>` path or children using `$values/values/...`, update the parent `spec.source.path` to `argocd/applications/<domain>` and child `helm.valueFiles` to `$values/helm/values/...`, then commit and let Argo reconcile.
+
+That creates **one parent `Application`** per command. Each parent’s `spec.source.path` is **`argocd/applications/<domain>/`** (for example `argocd/applications/canfar.net`), **not** `argocd/bootstrap/`. After Argo **syncs** that parent, it reads Git and creates or updates **every** child `Application` YAML under that path (recursively). You do **not** `kubectl apply` each child file in day-to-day use.
 
 **Using the Argo CD UI instead of `kubectl`**
 
-Creating the parent via **Create application** is equivalent if you enter the **same** spec: repository = this repo, **path** = `apps/<domain>` (e.g. `apps/canfar.net`), destination = this cluster and the namespace where `Application` CRs live (usually `argocd`). You do **not** set the path to `bootstrap/` or to a single file inside it.
+Creating the parent via **Create application** is equivalent if you enter the **same** spec: repository = this repo, **path** = `argocd/applications/<domain>` (e.g. `argocd/applications/canfar.net`), destination = this cluster and the namespace where `Application` CRs live (usually `argocd`). You do **not** set the path to `argocd/bootstrap/` or to a single file inside it.
 
 **After install**
 
@@ -94,11 +103,11 @@ Creating the parent via **Create application** is equivalent if you enter the **
 
 ## Adding a new Application
 
-Add **Helm values** and **Argo `Application` manifests** to Git. Do **not** put raw Helm values under `apps/`—only `Application` / `ApplicationSet` YAML.
+Add **Helm values** and **Argo `Application` manifests** to Git. Do **not** put raw Helm values under `argocd/applications/`—only `Application` / `ApplicationSet` YAML.
 
 **1. Values**
 
-Create a directory `values/<domain>/<service>/` with at least:
+Create a directory `helm/values/<domain>/<service>/` with at least:
 
 - `base.yaml` — shared defaults for the chart.
 - One overlay per environment you deploy, e.g. `integration.yaml`, `staging.yaml`, `prod.yaml` (names should match what you reference from the `Application`).
@@ -107,33 +116,33 @@ Align keys with your chart’s `values.yaml` from Harbor.
 
 **2. Application manifests**
 
-Under `apps/<domain>/`, add one `Application` per **service × environment** that should run at the same time (each env usually has its own Kubernetes namespace). Follow an existing service in that domain or the **`cadc-ccda/example-app`** template.
+Under `argocd/applications/<domain>/<service>/`, add one YAML file per **environment** that should run at the same time (each env usually has its own Kubernetes namespace). Follow an existing service in that domain or the **`cadc-ccda/example-app`** template.
 
-- **Integration / Staging:** `<service>-integration.yaml`, `<service>-staging.yaml`.
-- **Production:** `<service>.yaml` only (no `-prod` suffix in the filename).
+- **Integration / Staging:** `integration.yaml`, `staging.yaml`.
+- **Production:** `production.yaml`.
 
 Each file must be a valid `kind: Application` with:
 
 - Harbor source: `repoURL`, `chart`, `targetRevision` (OCI or registered Helm repo).
-- Git values source: `ref: values` and `helm.valueFiles` pointing at `$values/values/<domain>/<service>/...` (see any existing app in that domain).
+- Git values source: `ref: values` and `helm.valueFiles` pointing at `$values/helm/values/<domain>/<service>/...` (see any existing app in that domain).
 - `spec.destination` namespace and a unique `metadata.name` (see labels on current apps for naming patterns).
 
 **3. Ship the change**
 
-Commit and push. If the **bootstrap** parent for that domain is already applied and synced, Argo CD will pick up new or updated YAML under `apps/<domain>/` on the next reconciliation (enable a Git webhook for faster updates).
+Commit and push. If the **bootstrap** parent for that domain is already applied and synced, Argo CD will pick up new or updated YAML under `argocd/applications/<domain>/` on the next reconciliation (enable a Git webhook for faster updates).
 
 **4. First-time domain**
 
-If you added a **new** top-level domain folder under `apps/`, you must also add a matching **`bootstrap/<domain>-application.yaml`**, register nothing extra beyond Git, and `kubectl apply` that bootstrap file once so Argo starts managing `apps/<domain>/`.
+If you added a **new** domain folder under `argocd/applications/`, you must also add a matching **`argocd/bootstrap/<domain>.yaml`**, register nothing extra beyond Git, and `kubectl apply` that bootstrap file once so Argo starts managing `argocd/applications/<domain>/`.
 
 ## Charts (Harbor)
 
 - Chart packages are **not** stored in this repo.
-- Each `Application` references Harbor (`repoURL`, `chart`, `targetRevision` for OCI, or your registered Helm repo) and, when using values from Git, a second source or multiple sources for this repo’s `values/` paths. Adjust fields to match your Argo CD version and Harbor setup.
+- Each `Application` references Harbor (`repoURL`, `chart`, `targetRevision` for OCI, or your registered Helm repo) and, when using values from Git, a second source or multiple sources for this repo’s `helm/values/` paths. Adjust fields to match your Argo CD version and Harbor setup.
 
 ## Git as source of truth
 
-- Prefer **committed** `Application` YAML under `apps/` over defining production apps **only** in the Argo CD UI, so changes are reviewable and reproducible.
+- Prefer **committed** `Application` YAML under `argocd/applications/` over defining production apps **only** in the Argo CD UI, so changes are reviewable and reproducible.
 - **Git push** (plus webhook or polling) drives reconciliation; keep secrets out of plain values (use Sealed Secrets, External Secrets, SOPS, etc.).
 
 ## Prerequisites (operators)
