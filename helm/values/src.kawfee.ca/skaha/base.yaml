@@ -60,11 +60,15 @@ deployment:
 
     headlessPriorityClass:
       create: true
+      preemptionPolicy: "PreemptLowerPriority"
+      value: 1000000
       name: uber-user-preempt-high
 
     priorityClass:
       create: true
-      name: uber-user-preempt-high
+      value: 100000
+      preemptionPolicy: "PreemptLowerPriority"
+      name: uber-user-preempt-medium
 
     loggingGroups:
       - "ivo://cadc.nrc.ca/gms?CADC"
