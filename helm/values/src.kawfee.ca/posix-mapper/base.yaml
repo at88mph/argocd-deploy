@@ -1,0 +1,32 @@
+# POSIX Mapper web service deployment
+deployment:
+  posixMapper:
+    resourceID: "ivo://kawfee.ca/posix-mapper"
+    registryURL: https://src.kawfee.ca/reg
+
+    gmsID: ivo://skao.int/gms
+    oidcURI: https://ska-iam.stfc.ac.uk
+
+    minUID: 10000
+
+    loggingGroups:
+      - "ivo://skao.int/gms?roles/prod/user"
+
+    # Resources provided to the Skaha service.
+    resources:
+      requests:
+        memory: "1Gi"
+        cpu: "500m"
+      limits:
+        memory: "1500Mi"
+        cpu: "750m"
+
+    # Optionally set the DEBUG port.
+    extraEnv:
+    - name: CATALINA_OPTS
+      value: "-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=0.0.0.0:5555"
+
+    # Uncomment to debug.  Requires options above as well as service port exposure below.
+    extraPorts:
+    - containerPort: 5555
+      protocol: TCP

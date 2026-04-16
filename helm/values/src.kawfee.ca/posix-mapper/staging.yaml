@@ -1,0 +1,14 @@
+replicaCount: 1
+
+deployment:
+  hostname: src.kawfee.ca
+
+# These values are preset in the catalina.properties, and this default database only exists beside this service.
+# It's usually safe to leave these as-is, but make sure they match the values in catalina.properties.
+postgresql:
+  maxActive: 4
+  url: jdbc:postgresql://kawfee-kubernetes-persistence:15432/mapping
+  schema: mapping
+  auth:
+    username: posixmapperuser
+    password: posixmapperpass

@@ -1,0 +1,46 @@
+global:
+  hostname: src.kawfee.ca
+
+application:
+  serviceEntries:
+    - id: "ivo://skao.int/gms"
+      url: "https://permissions.srcnet.skao.int/api/v1/gms/capabilities"
+    - id: "ivo://cadc.nrc.ca/gms"
+      url: "https://ws-cadc.canfar.net/ac/capabilities"
+    - id: "ivo://cadc.nrc.ca/skaha"
+      url: "https://src.kawfee.ca/skaha/capabilities"
+    - id: "ivo://cadc.nrc.ca/arc"
+      url: "https://src.kawfee.ca/arc/capabilities"
+    - id: "ivo://cadc.nrc.ca/vault"
+      url: "https://ws-cadc.canfar.net/vault/capabilities"
+    - id: "ivo://cadc.nrc.ca/cred"
+      url: "https://ws.cadc-ccda.hia-iha.nrc-cnrc.gc.ca/cred/capabilities"
+  userInterfaceEntries:
+    - id: "ivo://cadc.nrc.ca/passchg"
+      url: "https://src.kawfee.ca/en/auth/resetPassword.html"
+    - id: "ivo://cadc.nrc.ca/passreset"
+      url: "https://src.kawfee.ca/en/auth/resetPassword.html"
+    - id: "ivo://cadc.nrc.ca/acctrequest"
+      url: "https://src.kawfee.ca/en/auth/request.html"
+    - id: "ivo://cadc.nrc.ca/acctupdate"
+      url: "https://src.kawfee.ca/en/auth/update.html"
+    - id: "ivo://cadc.nrc.ca/groups"
+      url: "https://src.kawfee.ca/en/groups/"
+    - id: "ivo://cadc.nrc.ca/login"
+      url: "https://src.kawfee.ca/en/login.html"
+    - id: "ivo://cadc.nrc.ca/download"
+      url: "https://src.kawfee.ca/en/download"
+    - id: "ivo://cadc.nrc.ca/search"
+      url: "https://src.kawfee.ca/en/search"
+    - id: "ivo://cadc.nrc.ca/canfar-dashboard"
+      url: "https://src.kawfee.ca/"
+
+ingress:
+  hosts:
+    - host: src.kawfee.ca
+      paths:
+        - path: /reg
+          pathType: Prefix
+
+imagePullSecrets:
+  - name: bucket-registry-auth

@@ -1,0 +1,22 @@
+kubernetesClusterDomain: keel-prod.local
+
+replicaCount: 3
+
+deployment:
+  hostname: staging.canfar.net
+
+  skaha:
+    registryURL:
+      - https://staging.canfar.net/reg
+
+    sessions:
+      namespace: canfar-workloads
+      kueue:
+        rbac:
+          create: true
+        default:
+          queueName: "skaha-local-queue"
+          priorityClass: "high"
+        headless:
+          queueName: "skaha-local-queue"
+          priorityClass: "low"

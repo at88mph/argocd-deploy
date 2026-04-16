@@ -1,0 +1,95 @@
+# Shared defaults for arc (Cavern Helm chart:
+# opencadc/deployments/helm/applications/cavern).
+# Ingress serves the app at path deployment.cavern.endpoint (`/arc`).
+#
+# Image and many nested defaults: use the chart’s values.yaml (chart version / appVersion).
+# Replace storage, filesystem ownership, and identity/registry IDs to match your cluster.
+# The keel-prod Kubernetes cluster domain
+
+kubernetesClusterDomain: cluster.local
+
+# Arc web service deployment
+deployment:
+  cavern:
+    # How this Cavern instance identifies itself.
+    resourceID: "ivo://kawfee.ca/cavern"
+
+    # The Resource ID of the Service that contains the POSIX Mapping information.  Those URI values that do not use an http(s) scheme
+    # will be looked up in the registry provided by the registryURL.
+    posixMapperResourceID: "https://src.kawfee.ca/posix-mapper"
+
+    # URI or URL of the OIDC server.  For CANFAR, this is just to round out the cadc-registry.properties.
+    oidcURI: "https://ska-iam.stfc.ac.uk/"
+
+    # ID (URI) of the GMS Service.
+    gmsID: "ivo://cadc.nrc.ca/gms"
+
+    quotaPlugin: NoQuotaPlugin
+    
+    # User Allocation settings.  This is used to create new folders under the main root allocation folders, namely /home and /projects.
+    allocations:
+      # Required.  The default size, in GB, of an allocation.  This is used in the absence of the Quota VOSpace property.  Can be a floating point number.
+      # Provided value is 10 (10 GiB) by default.
+      # Example:
+      #   defaultSizeGB: 25.5
+      defaultSizeGB: 200
+
+    filesystem:
+      # persistent data directory in container
+      dataDir: "/data"
+
+      # RELATIVE path to the node/file content that could be mounted in other containers
+      subPath: "cavern"
+
+      rootOwner:
+        adminUsername: "cavernadmin"
+        username: "cavernadmin"
+        uid: 10001
+        gid: 10001
+
+    # The IdentityManager class handling authentication.  From within the CADC,
+    # The AC service is used for authentication, so set the appropriate
+    # Identity Manager class here.
+    identityManagerClass: org.opencadc.auth.StandardIdentityManager
+
+    # Rename the application from the default "cavern" to "arc".
+    applicationName: "arc"
+
+    # The endpoint to serve this from.  Defaults to /cavern.  If the applicationName is changed, then this should match.
+    # Don't forget to update your registry entries!
+    endpoint: "/arc"
+
+    # Resources provided to the Arc service.
+    resources:
+      requests:
+        memory: "2Gi"
+        cpu: "1"
+      limits:
+        memory: "3Gi"
+        cpu: "2"
+
+    # Other volume mount details on mounting volumes declared in the extraVolumes section can be set here.
+    extraVolumeMounts:
+
+    # Other volumes that will be used in the deployment, that don't fit into the general
+    # template scheme (i.e. not used by all installations).
+    extraVolumes:
+
+# Init container image to merge UWS credentials from the Secret into catalina.properties on the Cavern pod.
+volumeInit:
+  # Merged into spec.template.spec.securityContext (alongside conditional fsGroup from deployment.cavern.filesystem.rootOwner).
+  podSecurityContext:
+    seccompProfile:
+      type: RuntimeDefault
+  # Container securityContext for the merge-uws-db-credentials init container only.
+  securityContext:
+    allowPrivilegeEscalation: false
+    runAsNonRoot: true
+    runAsUser: 8675309
+    capabilities:
+      drop:
+        - ALL
+
+serviceAccount:
+  name: src-kawfee-ca-cavern
+  create: true

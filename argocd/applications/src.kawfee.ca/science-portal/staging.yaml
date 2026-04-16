@@ -1,0 +1,31 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: src-kawfee-ca-science-portal-staging
+  namespace: argocd
+  labels:
+    argocd.argoproj.io/domain: kawfee.ca
+    argocd.argoproj.io/environment: staging
+    argocd.argoproj.io/service: science-portal
+spec:
+  project: canfar
+  sources:
+    - repoURL: https://images-rc.canfar.net/chartrepo/skaha-system
+      chart: scienceportal
+      targetRevision: 1.4.0
+      helm:
+        valueFiles:
+          - $values/helm/values/canfar.net/science-portal/base.yaml
+          - $values/helm/values/canfar.net/science-portal/staging.yaml
+    - repoURL: https://github.com/at88mph/argocd-deploy.git
+      targetRevision: main
+      ref: values
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: canfar-system
+  syncPolicy:
+    syncOptions:
+      - CreateNamespace=true
+    automated:
+      prune: true
+      selfHeal: true

@@ -1,0 +1,30 @@
+replicaCount: 1
+
+deployment:
+  hostname: src.kawfee.ca
+
+  cavern:
+    image: images.opencadc.org/platform/cavern:0.9.3
+    imagePullPolicy: Always
+    registryURL: https://src.kawfee.ca/reg
+
+    # Further UWS settings for the Tomcat Pool setup.
+    uws:
+      install: true
+      schema: uws
+      maxActive: 2
+
+# Set these appropriately to match your Persistent Volume Claim labels.
+storage:
+  service:
+    spec:
+      cephfs:
+        monitors:
+        - 10.30.201.3:6789
+        - 10.30.202.3:6789
+        - 10.30.203.3:6789
+        path: /volumes/_nogroup/054e398e-a08e-425e-9f7c-fc394362e38e
+        user: src-kawfee-ca-cephfs
+        secretRef:
+          name: cephfs-cephx-admin-key
+        readOnly: false

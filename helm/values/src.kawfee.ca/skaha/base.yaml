@@ -1,0 +1,192 @@
+# Shared defaults for skaha — keys taken from
+# opencadc/deployments/helm/applications/skaha/values.yaml only (no ad-hoc keys).
+# Everything else (replicaCount, skahaWorkload, registryHosts, image, redis, ingress, …) uses the chart.
+#
+# Note: templates reference deployment.skaha.skahaTld for skaha.homedir, but that key is not in
+# values.yaml; do not invent it here. Fix belongs in the chart (or accept the template default).
+
+podSecurityContext:
+  runAsNonRoot: true
+  runAsUser: 8675309
+  runAsGroup: 8675309
+  fsGroup: 8675309
+  seccompProfile:
+    type: RuntimeDefault
+
+securityContext:
+  allowPrivilegeEscalation: false
+  privileged: false
+  capabilities:
+    drop:
+      - ALL
+  seccompProfile:
+    type: RuntimeDefault
+
+# Skaha web service deployment
+deployment:
+  skaha:
+    imagePullSecrets:
+      - name: bucket-registry-auth
+    imagePullPolicy: Always
+    nodeAffinity:
+      preferredDuringSchedulingIgnoredDuringExecution:
+      - weight: 50
+        preference: 
+          matchExpressions:
+          - key: skaha.opencadc.org/node-type
+            operator: In
+            values:
+            - service-node
+      requiredDuringSchedulingIgnoredDuringExecution:
+        nodeSelectorTerms:
+        - matchExpressions:
+          - key: nvidia.com/gpu.count
+            operator: DoesNotExist
+
+    # Used when allocating first-time users into the system.
+    defaultQuotaGB: "200"
+
+    # Space delimited list of allowed Image Registry hosts.  These hosts should match the hosts in the User Session images.
+    registryHosts: "images.canfar.net"
+
+    # The group name to verify users against for permission to use the Science Platform.
+    usersGroup: "ivo://cadc.nrc.ca/gms?skaha-users"
+
+    adminsGroup: "ivo://cadc.nrc.ca/gms?skaha-admins"
+
+    headlessGroup: "ivo://cadc.nrc.ca/gms?skaha-users"
+
+    headlessPriorityGroup: "ivo://cadc.nrc.ca/gms?skaha-priority-headless-users"
+
+    headlessPriorityClass:
+      create: false
+      name: uber-user-preempt-high
+
+    priorityClass:
+      create: false
+      name: uber-user-preempt-high
+
+    loggingGroups:
+      - "ivo://cadc.nrc.ca/gms?CADC"
+
+    # URI or URL of the OIDC (IAM) server
+    oidcURI: ivo://cadc.nrc.ca/gms
+
+    # ID (URI) of the GMS Service.
+    gmsID: ivo://cadc.nrc.ca/gms
+
+    # The Resource ID of the Service that contains the Posix Mapping information.  For CANFAR, this is set
+    # in the cadc-registry.properties file.
+    posixMapperResourceID: "ivo://cadc.nrc.ca/gms"
+
+    # The IdentityManager class handling authentication.  This should generally be left alone
+    identityManagerClass: ca.nrc.cadc.ac.ACIdentityManager
+
+    # Setting to control how often image registry is queried for available images.
+    imageCache:
+      refreshSchedule: "*/15 * * * *"
+
+    # Ten (10) minutes cache TTL for posix mapper results
+    posixMapperCacheTTLSeconds: "600"
+
+    # Settings for User Sessions.
+    sessions:
+      hostname: workloads.canfar.net
+      gpuEnabled: true
+      expirySeconds: "345600"
+      maxCount: "3"
+      nodeLabelSelector: "skaha.opencadc.org/node-type=worker-node"
+      nodeAffinity:
+        # Only allow executions of User Sessions on specific Nodes.
+        requiredDuringSchedulingIgnoredDuringExecution:
+          nodeSelectorTerms:
+          - matchExpressions:
+            - key: skaha.opencadc.org/node-type
+              operator: NotIn
+              values:
+              - service-node
+
+      limitRange:
+        enabled: true
+        rbac:
+          create: false
+        spec:
+          max:  # maximum allowed requested
+            memory: "192Gi"
+            cpu: "16"
+            nvidia.com/gpu: "8"
+          default:  # actually refers to default limits
+            memory: "24Gi"
+            cpu: "4"
+            nvidia.com/gpu: "0"
+          defaultRequest:  # default requests
+            memory: "4Gi"
+            cpu: "1"
+            nvidia.com/gpu: "0"
+
+      # Declare extra volume mounts in User Sessions.  The "type: parameter in volume section is constant.
+      # @see https://github.com/opencadc/deployments/blob/main/helm/applications/skaha/values.yaml#L166 for possible configurations.
+      extraVolumes:
+        - name: cvmfs
+          volume:
+            type: HOST_PATH     # HOST_PATH is for host path
+            hostPath: "/cvmfs/"
+            hostPathType: Directory
+          volumeMount:
+            mountPath: "/cvmfs"
+            readOnly: true
+            mountPropagation: HostToContainer
+
+      userStorage:
+        topLevelDirectory: "/arc"
+        persistentVolumeClaimName: skaha-workload-cavern-pvc
+        nodeURIPrefix: "vos://cadc.nrc.ca~arc"
+        serviceURI: "ivo://cadc.nrc.ca/arc"
+        admin:
+          auth:
+            apiKeySecret:
+              name: skaha-api-key
+              key: api-key
+
+    # Resources provided to the Skaha service.
+    resources:
+      limits:
+        cpu: "2"
+        memory: 3Gi
+      requests:
+        cpu: "20m"
+        memory: 3Gi
+
+    # Optionally mount a custom CA certificate
+    extraVolumeMounts:
+      - mountPath: /usr/share/tomcat/.ssl/
+        name: servops-cert
+        readOnly: true
+
+    # Create the CA certificate volume to be mounted in extraVolumeMounts
+    extraVolumes:
+      - name: servops-cert
+        secret:
+          defaultMode: 420
+          secretName: servops-clientcert
+
+    # Other data to be included in the main ConfigMap of this deployment.
+    # Of note, files that end in .key are special and base64 decoded.
+    extraConfigData:
+      # .key files are special and are base64 decoded.
+      RsaSignaturePub.key: LS0tLS1CRUdJTiBQVUJMSUMgS0VZLS0tLS0KTUlJQklqQU5CZ2txaGtpRzl3MEJBUUVGQUFPQ0FROEFNSUlCQ2dLQ0FRRUF2aXR3Z2g5OVVsTFROVWdaV0t5M2JEQit1NysrUVgvaQpHcGIzSC9wMG8wZENRdXJPSEg5TlNXa1VIOXBvMENEbkRHVE4wWkZvTFVlR0JERGwvcENOMkxrK0FZbXg3c2p4VVk3WWlQQTZpWEsxCnpMUXRQcUtaQy9vWjdDcUYycHlVWm9TWTZZL3hqN1FiekZUaEZSK21DN2RYdFAwR2l1Mmw4N3dZc3pOVUF6U2JBQXV5Zm1taXBFalQKUWZmUFRBWitRWFk1SmlsZFM3OC80T2lCTU8zcm9PeUl5dUFhczlrTjRJaSt2WllPd3FYTWpRQWhNQk1Wem03V3dRK2E2cDFYNDNtWQpSa0trbUxZL0h0U3pOOENZL1k2QkY1Q3FIZ0lJZWN3OWVEVlZTTjNyNzFaWldSNnZ4V3laeWQ1TmlPeG5lU3FQMHJBVEczdThURStQCklTUUM3d0lEQVFBQgotLS0tLUVORCBQVUJMSUMgS0VZLS0tLS0K
+
+experimentalFeatures:
+  enabled: false
+
+redis:
+  networkPolicy:
+    enabled: false
+  serviceAccount:
+    create: false
+  master:
+    serviceAccount:
+      create: false
+
+
+    # deployment.hostname: integration.yaml, staging.yaml, prod.yaml

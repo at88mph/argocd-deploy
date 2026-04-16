@@ -1,6 +1,0 @@
-# Shared defaults for access (align keys with the Harbor chart).
-replicaCount: 1
-
-image:
-  repository: harbor.example.com/canfar/access
-  tag: "0.1.0"

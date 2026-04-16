@@ -1,0 +1,67 @@
+# Shared defaults for storage-ui — keys from
+# opencadc/deployments/helm/applications/storage-ui/values.yaml only.
+# replicaCount, image, resources, redis: chart defaults. OIDC is not used.
+
+podSecurityContext:
+  runAsNonRoot: true
+  runAsUser: 8675309
+  runAsGroup: 8675309
+  fsGroup: 8675309
+  seccompProfile:
+    type: RuntimeDefault
+
+securityContext:
+  allowPrivilegeEscalation: false
+  privileged: false
+  capabilities:
+    drop:
+      - ALL
+  seccompProfile:
+    type: RuntimeDefault
+
+deployment:
+  storageUI:
+    imagePullPolicy: IfNotPresent
+    gmsID: ivo://cadc.nrc.ca/gms
+
+    identityManagerClass: ca.nrc.cadc.ac.ACIdentityManager
+
+    loggingGroups:
+      - "ivo://cadc.nrc.ca/gms?CADC"
+
+    themeName: canfar
+
+    backend:
+      defaultService: arc
+      services:
+        arc:
+          resourceID: "ivo://cadc.nrc.ca/arc"
+          nodeURIPrefix: "vos://cadc.nrc.ca~arc"
+          userHomeDir: "/home"
+          features:
+            batchDownload: true
+            batchUpload: false
+            externalLinks: false
+            paging: false
+            directDownload: true
+            
+        vault:
+          resourceID: "ivo://cadc.nrc.ca/vault"
+          nodeURIPrefix: "vos://cadc.nrc.ca~vault"
+          userHomeDir: "/"
+          features:
+            batchDownload: true
+            batchUpload: false
+            externalLinks: true
+            paging: true
+            directDownload: true
+
+    resources:
+      requests:
+        memory: "750Mi"
+        cpu: "500m"
+      limits:
+        memory: "1Gi"
+        cpu: "750m"
+
+    # deployment.hostname: integration.yaml, staging.yaml, prod.yaml

@@ -1,0 +1,8 @@
+kubernetesClusterDomain: keel-prod.local
+
+deployment:
+  hostname: src.kawfee.ca
+
+  storageUI:
+    registryURL:
+      - "https://src.kawfee.ca/reg"
