@@ -91,7 +91,7 @@ deployment:
 
     # Settings for User Sessions.
     sessions:
-      hostname: workloads.canfar.net
+      hostname: src.kawfee.ca
       gpuEnabled: true
       expirySeconds: "345600"
       maxCount: "3"

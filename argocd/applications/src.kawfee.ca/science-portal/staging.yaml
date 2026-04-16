@@ -15,8 +15,8 @@ spec:
       targetRevision: 1.4.0
       helm:
         valueFiles:
-          - $values/helm/values/canfar.net/science-portal/base.yaml
-          - $values/helm/values/canfar.net/science-portal/staging.yaml
+          - $values/helm/values/src.kawfee.ca/science-portal/base.yaml
+          - $values/helm/values/src.kawfee.ca/science-portal/staging.yaml
     - repoURL: https://github.com/at88mph/argocd-deploy.git
       targetRevision: main
       ref: values

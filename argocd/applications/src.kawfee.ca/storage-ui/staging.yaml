@@ -15,8 +15,8 @@ spec:
       targetRevision: 0.10.1
       helm:
         valueFiles:
-          - $values/helm/values/canfar.net/storage-ui/base.yaml
-          - $values/helm/values/canfar.net/storage-ui/staging.yaml
+          - $values/helm/values/src.kawfee.ca/storage-ui/base.yaml
+          - $values/helm/values/src.kawfee.ca/storage-ui/staging.yaml
     - repoURL: https://github.com/at88mph/argocd-deploy.git
       targetRevision: main
       ref: values

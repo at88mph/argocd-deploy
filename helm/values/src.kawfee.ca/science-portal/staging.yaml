@@ -1,11 +1,11 @@
 kubernetesClusterDomain: keel-prod.local
 
 deployment:
-  hostname: staging.canfar.net
+  hostname: src.kawfee.ca
   sciencePortal:
     skahaResourceID: "ivo://cadc.nrc.ca/skaha"
-    registryURL: "https://staging.canfar.net/reg"
-    storageHomeURL: "https://staging.canfar.net/arc/nodes/home"
+    registryURL: "https://src.kawfee.ca/reg"
+    storageHomeURL: "https://src.kawfee.ca/arc/nodes/home"
 
     # Other data to be included in the main ConfigMap of this deployment.
     # Of note, files that end in .key are special and base64 decoded.

@@ -3,11 +3,11 @@ kubernetesClusterDomain: keel-prod.local
 replicaCount: 3
 
 deployment:
-  hostname: staging.canfar.net
+  hostname: src.kawfee.ca
 
   skaha:
     registryURL:
-      - https://staging.canfar.net/reg
+      - https://src.kawfee.ca/reg
 
     sessions:
       namespace: canfar-workloads
