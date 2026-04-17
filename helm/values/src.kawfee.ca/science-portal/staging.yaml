@@ -14,11 +14,15 @@ app:
 
   api:
     storage: https://src.kawfee.ca/cavern/nodes/home/
+    skaha: https://src.kawfee.ca/skaha
     srcSkaha: https://src.kawfee.ca/skaha
+    cavern: https://src.kawfee.ca/cavern
     srcCavern: https://src.kawfee.ca/cavern
     timeoutMs: "30000"
 
   publicApi:
+    skaha: https://src.kawfee.ca/skaha
+    cavern: https://src.kawfee.ca/cavern
     srcSkaha: https://src.kawfee.ca/skaha
     srcCavern: https://src.kawfee.ca/cavern
     timeoutMs: "30000"
