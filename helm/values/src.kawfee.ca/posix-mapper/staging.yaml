@@ -3,6 +3,10 @@ replicaCount: 1
 deployment:
   hostname: src.kawfee.ca
 
+  posixMapper:
+    minUID: 10000
+    minGID: 900000
+
 # These values are preset in the catalina.properties, and this default database only exists beside this service.
 # It's usually safe to leave these as-is, but make sure they match the values in catalina.properties.
 postgresql:

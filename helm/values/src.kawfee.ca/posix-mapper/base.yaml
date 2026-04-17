@@ -5,9 +5,7 @@ deployment:
     registryURL: https://src.kawfee.ca/reg
 
     gmsID: ivo://skao.int/gms
-    oidcURI: https://ska-iam.stfc.ac.uk
-
-    minUID: 10000
+    oidcURI: https://ska-iam.stfc.ac.uk/
 
     loggingGroups:
       - "ivo://skao.int/gms?roles/prod/user"
