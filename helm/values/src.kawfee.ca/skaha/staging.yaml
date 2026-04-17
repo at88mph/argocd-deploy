@@ -2,6 +2,11 @@ kubernetesClusterDomain: cluster.local
 
 replicaCount: 1
 
+rbac:
+  create: true
+  clusterRole:
+    create: true
+
 deployment:
   hostname: src.kawfee.ca
 
