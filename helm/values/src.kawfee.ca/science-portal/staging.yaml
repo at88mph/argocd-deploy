@@ -40,7 +40,7 @@ app:
 
   auth:
     trustHost: true
-    nextauthUrl: https://src.kawfee.ca/science-portal
+    nextauthUrl: https://src.kawfee.ca
     authSecret:
       existingSecret: science-portal-secrets
       secretKey: auth-secret
