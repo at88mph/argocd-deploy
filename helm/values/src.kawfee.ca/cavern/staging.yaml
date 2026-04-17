@@ -4,16 +4,22 @@ deployment:
   hostname: src.kawfee.ca
 
   cavern:
-    image: images.opencadc.org/platform/cavern:0.9.3
     imagePullPolicy: Always
     registryURL: https://src.kawfee.ca/reg
 
     # Further UWS settings for the Tomcat Pool setup.
     uws:
-      install: true
-      schema: uws
-      maxActive: 2
+      db:
+        install: true
+        schema: uws
+        maxActive: 2
+        auth:
+          existingSecret: uws-db-auth
+          secretKeys:
+            username: username
+            password: password
 
+    # API Keys for the Cavern service.  
     adminAPIKeys:
       skaha:
         existingSecret: skaha-api-key
