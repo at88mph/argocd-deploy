@@ -14,6 +14,11 @@ deployment:
       schema: uws
       maxActive: 2
 
+    adminAPIKeys:
+      skaha:
+        existingSecret: skaha-api-key
+        key: api-key
+
 # Set these appropriately to match your Persistent Volume Claim labels.
 storage:
   service:
