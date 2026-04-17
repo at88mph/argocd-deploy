@@ -1,14 +1,53 @@
-kubernetesClusterDomain: keel-prod.local
+# src.kawfee.ca staging — science-portal chart 2.0.0 (Next.js).
+# Aligns with deployment/science-platform/kawfee/src.kawfee.ca/science-portal/values.yaml
+# where applicable; OIDC redirect URIs follow NextAuth (/api/auth/callback/oidc).
 
-deployment:
-  hostname: src.kawfee.ca
-  sciencePortal:
-    skahaResourceID: "ivo://cadc.nrc.ca/skaha"
-    registryURL: "https://src.kawfee.ca/reg"
-    storageHomeURL: "https://src.kawfee.ca/arc/nodes/home"
+replicaCount: 1
 
-    # Other data to be included in the main ConfigMap of this deployment.
-    # Of note, files that end in .key are special and base64 decoded.
-    extraConfigData:
-      # .key files are special and are base64 decoded.
-      RsaSignaturePub.key: LS0tLS1CRUdJTiBQVUJMSUMgS0VZLS0tLS0KTUlJQklqQU5CZ2txaGtpRzl3MEJBUUVGQUFPQ0FROEFNSUlCQ2dLQ0FRRUF2aXR3Z2g5OVVsTFROVWdaV0t5M2JEQit1NysrUVgvaQpHcGIzSC9wMG8wZENRdXJPSEg5TlNXa1VIOXBvMENEbkRHVE4wWkZvTFVlR0JERGwvcENOMkxrK0FZbXg3c2p4VVk3WWlQQTZpWEsxCnpMUXRQcUtaQy9vWjdDcUYycHlVWm9TWTZZL3hqN1FiekZUaEZSK21DN2RYdFAwR2l1Mmw4N3dZc3pOVUF6U2JBQXV5Zm1taXBFalQKUWZmUFRBWitRWFk1SmlsZFM3OC80T2lCTU8zcm9PeUl5dUFhczlrTjRJaSt2WllPd3FYTWpRQWhNQk1Wem03V3dRK2E2cDFYNDNtWQpSa0trbUxZL0h0U3pOOENZL1k2QkY1Q3FIZ0lJZWN3OWVEVlZTTjNyNzFaWldSNnZ4V3laeWQ1TmlPeG5lU3FQMHJBVEczdThURStQCklTUUM3d0lEQVFBQgotLS0tLUVORCBQVUJMSUMgS0VZLS0tLS0K
+image:
+  pullPolicy: Always
+
+app:
+  basePath: /science-portal
+  useCanfar: false
+  experimental: false
+
+  api:
+    storage: https://src.kawfee.ca/cavern/nodes/home/
+    srcSkaha: https://src.kawfee.ca/skaha
+    srcCavern: https://src.kawfee.ca/cavern
+    timeoutMs: "30000"
+
+  publicApi:
+    srcSkaha: https://src.kawfee.ca/skaha
+    srcCavern: https://src.kawfee.ca/cavern
+    timeoutMs: "30000"
+
+  oidc:
+    enabled: true
+    uri: https://ska-iam.stfc.ac.uk/
+    clientId: ffc508c0-b599-456b-b124-e4cfd2358e03
+    callbackUri: https://src.kawfee.ca/science-portal
+    redirectUri: https://src.kawfee.ca/science-portal/api/auth/callback/oidc
+    scope: openid profile offline_access
+    clientSecret:
+      existingSecret: science-portal-oidc-secret-src
+      secretKey: oidc-client-secret
+
+  auth:
+    trustHost: true
+    nextauthUrl: https://src.kawfee.ca/science-portal/api/auth
+    authSecret:
+      existingSecret: science-portal-secrets
+      secretKey: auth-secret
+
+ingress:
+  enabled: true
+  className: traefik
+  annotations: {}
+  hosts:
+    - host: src.kawfee.ca
+      paths:
+        - path: /science-portal
+          pathType: Prefix
+  tls: []

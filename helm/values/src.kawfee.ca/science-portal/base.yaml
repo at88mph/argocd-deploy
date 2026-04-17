@@ -1,32 +1,43 @@
-# Shared defaults for science-portal — keys from
-# opencadc/deployments/helm/applications/science-portal/values.yaml only.
-# replicaCount, image, resources, redis, tabLabels, defaultProjectName, ingress path: chart defaults.
+# Shared defaults for science-portal Helm chart 2.x (Next.js app).
+# Chart: https://github.com/canfar/science-portal — values schema matches chart 2.0.0+.
+
+imagePullSecrets:
+  - name: bucket-registry-auth
 
 podSecurityContext:
   runAsNonRoot: true
-  runAsUser: 8675309
-  runAsGroup: 8675309
-  fsGroup: 8675309
+  runAsUser: 1001
+  runAsGroup: 1001
+  fsGroup: 1001
   seccompProfile:
     type: RuntimeDefault
 
 securityContext:
   allowPrivilegeEscalation: false
-  runAsGroup: 8675309
-  privileged: false
   capabilities:
     drop:
       - ALL
-  seccompProfile:
-    type: RuntimeDefault
+  readOnlyRootFilesystem: false
 
-deployment:
-  sciencePortal:
-    gmsID: "ivo://cadc.nrc.ca/gms"
-    
-    identityManagerClass: ca.nrc.cadc.ac.ACIdentityManager
+resources:
+  requests:
+    memory: 500Mi
+    cpu: 500m
+  limits:
+    memory: 1Gi
+    cpu: 750m
 
-    theme:
-      name: canfar
-      logoURL: "https://www.canfar.net/css/images/logo.png"
+livenessProbe:
+  initialDelaySeconds: 30
+  periodSeconds: 10
 
+readinessProbe:
+  initialDelaySeconds: 10
+  periodSeconds: 5
+
+# Chart 2.0.0 templates reference these keys though defaults omit them.
+podDisruptionBudget:
+  enabled: false
+
+networkPolicy:
+  enabled: false
