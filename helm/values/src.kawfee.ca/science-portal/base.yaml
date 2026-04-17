@@ -2,7 +2,7 @@
 # Chart: https://github.com/canfar/science-portal — values schema matches chart 2.0.0+.
 
 imagePullSecrets:
-  - name: bucket-registry-auth
+  - name: ghcr-science-portal
 
 podSecurityContext:
   runAsNonRoot: true
