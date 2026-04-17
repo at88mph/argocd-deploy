@@ -28,20 +28,6 @@ deployment:
     imagePullSecrets:
       - name: bucket-registry-auth
     imagePullPolicy: Always
-    nodeAffinity:
-      preferredDuringSchedulingIgnoredDuringExecution:
-      - weight: 50
-        preference: 
-          matchExpressions:
-          - key: skaha.opencadc.org/node-type
-            operator: In
-            values:
-            - service-node
-      requiredDuringSchedulingIgnoredDuringExecution:
-        nodeSelectorTerms:
-        - matchExpressions:
-          - key: nvidia.com/gpu.count
-            operator: DoesNotExist
 
     # Used when allocating first-time users into the system.
     defaultQuotaGB: "200"
@@ -50,13 +36,13 @@ deployment:
     registryHosts: "images.canfar.net"
 
     # The group name to verify users against for permission to use the Science Platform.
-    usersGroup: "ivo://cadc.nrc.ca/gms?skaha-users"
+    usersGroup: "ivo://skao.int/gms?roles/prod/user"
 
-    adminsGroup: "ivo://cadc.nrc.ca/gms?skaha-admins"
+    adminsGroup: "ivo://skao.int/gms?roles/prod/admin"
 
-    headlessGroup: "ivo://cadc.nrc.ca/gms?skaha-users"
+    headlessGroup: "ivo://skao.int/gms?roles/prod/user"
 
-    headlessPriorityGroup: "ivo://cadc.nrc.ca/gms?skaha-priority-headless-users"
+    headlessPriorityGroup: "ivo://skao.int/gms?roles/prod/vip-user"
 
     headlessPriorityClass:
       create: true
@@ -71,20 +57,20 @@ deployment:
       name: uber-user-preempt-medium
 
     loggingGroups:
-      - "ivo://cadc.nrc.ca/gms?CADC"
+      - "ivo://skao.int/gms?roles/prod/user"
 
     # URI or URL of the OIDC (IAM) server
-    oidcURI: ivo://cadc.nrc.ca/gms
+    oidcURI: https://ska-iam.stfc.ac.uk/
 
     # ID (URI) of the GMS Service.
-    gmsID: ivo://cadc.nrc.ca/gms
+    gmsID: ivo://skao.int/gms
 
     # The Resource ID of the Service that contains the Posix Mapping information.  For CANFAR, this is set
     # in the cadc-registry.properties file.
-    posixMapperResourceID: "ivo://cadc.nrc.ca/gms"
+    posixMapperResourceID: "https://src.kawfee.ca/posix-mapper"
 
     # The IdentityManager class handling authentication.  This should generally be left alone
-    identityManagerClass: ca.nrc.cadc.ac.ACIdentityManager
+    identityManagerClass: org.opencadc.auth.StandardIdentityManager
 
     # Setting to control how often image registry is queried for available images.
     imageCache:
@@ -96,19 +82,19 @@ deployment:
     # Settings for User Sessions.
     sessions:
       hostname: src.kawfee.ca
-      gpuEnabled: true
+      gpuEnabled: false
       expirySeconds: "345600"
       maxCount: "3"
-      nodeLabelSelector: "skaha.opencadc.org/node-type=worker-node"
-      nodeAffinity:
-        # Only allow executions of User Sessions on specific Nodes.
-        requiredDuringSchedulingIgnoredDuringExecution:
-          nodeSelectorTerms:
-          - matchExpressions:
-            - key: skaha.opencadc.org/node-type
-              operator: NotIn
-              values:
-              - service-node
+      # nodeLabelSelector: "skaha.opencadc.org/node-type=worker-node"
+      # nodeAffinity:
+      #   # Only allow executions of User Sessions on specific Nodes.
+      #   requiredDuringSchedulingIgnoredDuringExecution:
+      #     nodeSelectorTerms:
+      #     - matchExpressions:
+      #       - key: skaha.opencadc.org/node-type
+      #         operator: NotIn
+      #         values:
+      #         - service-node
 
       limitRange:
         enabled: true
@@ -128,30 +114,6 @@ deployment:
             cpu: "1"
             nvidia.com/gpu: "0"
 
-      # Declare extra volume mounts in User Sessions.  The "type: parameter in volume section is constant.
-      # @see https://github.com/opencadc/deployments/blob/main/helm/applications/skaha/values.yaml#L166 for possible configurations.
-      extraVolumes:
-        - name: cvmfs
-          volume:
-            type: HOST_PATH     # HOST_PATH is for host path
-            hostPath: "/cvmfs/"
-            hostPathType: Directory
-          volumeMount:
-            mountPath: "/cvmfs"
-            readOnly: true
-            mountPropagation: HostToContainer
-
-      userStorage:
-        topLevelDirectory: "/cavern"
-        persistentVolumeClaimName: skaha-workload-cavern-pvc
-        nodeURIPrefix: "vos://kawfee.ca~cavern"
-        serviceURI: "ivo://kawfee.ca/cavern"
-        admin:
-          auth:
-            apiKeySecret:
-              name: skaha-api-key
-              key: api-key
-
     # Resources provided to the Skaha service.
     resources:
       limits:
@@ -160,25 +122,6 @@ deployment:
       requests:
         cpu: "20m"
         memory: 3Gi
-
-    # Optionally mount a custom CA certificate
-    extraVolumeMounts:
-      - mountPath: /usr/share/tomcat/.ssl/
-        name: servops-cert
-        readOnly: true
-
-    # Create the CA certificate volume to be mounted in extraVolumeMounts
-    extraVolumes:
-      - name: servops-cert
-        secret:
-          defaultMode: 420
-          secretName: servops-clientcert
-
-    # Other data to be included in the main ConfigMap of this deployment.
-    # Of note, files that end in .key are special and base64 decoded.
-    extraConfigData:
-      # .key files are special and are base64 decoded.
-      RsaSignaturePub.key: LS0tLS1CRUdJTiBQVUJMSUMgS0VZLS0tLS0KTUlJQklqQU5CZ2txaGtpRzl3MEJBUUVGQUFPQ0FROEFNSUlCQ2dLQ0FRRUF2aXR3Z2g5OVVsTFROVWdaV0t5M2JEQit1NysrUVgvaQpHcGIzSC9wMG8wZENRdXJPSEg5TlNXa1VIOXBvMENEbkRHVE4wWkZvTFVlR0JERGwvcENOMkxrK0FZbXg3c2p4VVk3WWlQQTZpWEsxCnpMUXRQcUtaQy9vWjdDcUYycHlVWm9TWTZZL3hqN1FiekZUaEZSK21DN2RYdFAwR2l1Mmw4N3dZc3pOVUF6U2JBQXV5Zm1taXBFalQKUWZmUFRBWitRWFk1SmlsZFM3OC80T2lCTU8zcm9PeUl5dUFhczlrTjRJaSt2WllPd3FYTWpRQWhNQk1Wem03V3dRK2E2cDFYNDNtWQpSa0trbUxZL0h0U3pOOENZL1k2QkY1Q3FIZ0lJZWN3OWVEVlZTTjNyNzFaWldSNnZ4V3laeWQ1TmlPeG5lU3FQMHJBVEczdThURStQCklTUUM3d0lEQVFBQgotLS0tLUVORCBQVUJMSUMgS0VZLS0tLS0K
 
 experimentalFeatures:
   enabled: false
