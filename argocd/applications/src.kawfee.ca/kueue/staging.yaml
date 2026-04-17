@@ -10,7 +10,7 @@ metadata:
 spec:
   project: canfar
   source:
-    repoURL: https://github.com/cadc-ccda-infra/keel-deploy.git
+    repoURL: https://github.com/at88mph/argocd-deploy.git
     targetRevision: main
     path: helm/values/src.kawfee.ca/kueue
     directory:
