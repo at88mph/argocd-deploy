@@ -142,10 +142,10 @@ deployment:
             mountPropagation: HostToContainer
 
       userStorage:
-        topLevelDirectory: "/arc"
+        topLevelDirectory: "/cavern"
         persistentVolumeClaimName: skaha-workload-cavern-pvc
-        nodeURIPrefix: "vos://cadc.nrc.ca~arc"
-        serviceURI: "ivo://cadc.nrc.ca/arc"
+        nodeURIPrefix: "vos://kawfee.ca~cavern"
+        serviceURI: "ivo://kawfee.ca/cavern"
         admin:
           auth:
             apiKeySecret:

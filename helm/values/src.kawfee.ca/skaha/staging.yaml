@@ -1,6 +1,6 @@
-kubernetesClusterDomain: keel-prod.local
+kubernetesClusterDomain: cluster.local
 
-replicaCount: 3
+replicaCount: 1
 
 deployment:
   hostname: src.kawfee.ca
@@ -20,3 +20,37 @@ deployment:
         headless:
           queueName: "skaha-local-queue"
           priorityClass: "low"
+
+      # Declare extra volume mounts in User Sessions.  The "type: parameter in volume section is constant.
+      # @see https://github.com/opencadc/deployments/blob/main/helm/applications/skaha/values.yaml#L166 for possible configurations.
+      extraVolumes:
+        - name: cvmfs
+          volume:
+            type: HOST_PATH     # HOST_PATH is for host path
+            hostPath: "/cvmfs/"
+            hostPathType: Directory
+          volumeMount:
+            mountPath: "/cvmfs"
+            readOnly: true
+            mountPropagation: HostToContainer
+
+      userStorage:
+        spec:
+          cephfs:
+            monitors:
+            - 10.30.201.3:6789
+            - 10.30.202.3:6789
+            - 10.30.203.3:6789
+            path: /volumes/_nogroup/054e398e-a08e-425e-9f7c-fc394362e38e
+            user: src-cephfs
+            secretRef:
+              name: cephfs-cephx-admin-key
+              namespace: canfar-system
+            readOnly: false
+        nodeURIPrefix: "vos://kawfee.ca~cavern"
+        serviceURI: "ivo://kawfee.ca/cavern"
+        admin:
+          auth:
+            apiKeySecret:
+              name: skaha-api-key
+              key: api-key
