@@ -47,7 +47,7 @@ app:
 
 livenessProbe:
   httpGet:
-    port: http
+    port: 3000
     path: /science-portal
   initialDelaySeconds: 30
   periodSeconds: 10
@@ -56,7 +56,7 @@ livenessProbe:
 
 readinessProbe:
   httpGet:
-    port: http
+    port: 3000
     path: /science-portal/api/health
   initialDelaySeconds: 10
   periodSeconds: 5
@@ -65,7 +65,7 @@ readinessProbe:
 
 startupProbe:
   httpGet:
-    port: http
+    port: 3000
     path: /science-portal
   periodSeconds: 10
   timeoutSeconds: 3
