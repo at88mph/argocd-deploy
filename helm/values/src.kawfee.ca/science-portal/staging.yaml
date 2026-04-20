@@ -45,6 +45,32 @@ app:
       existingSecret: science-portal-secrets
       secretKey: auth-secret
 
+livenessProbe:
+  httpGet:
+    port: http
+    path: /science-portal
+  initialDelaySeconds: 30
+  periodSeconds: 10
+  timeoutSeconds: 3
+  failureThreshold: 3
+
+readinessProbe:
+  httpGet:
+    port: http
+    path: /science-portal/api/health
+  initialDelaySeconds: 10
+  periodSeconds: 5
+  timeoutSeconds: 3
+  failureThreshold: 3
+
+startupProbe:
+  httpGet:
+    port: http
+    path: /science-portal
+  periodSeconds: 10
+  timeoutSeconds: 3
+  failureThreshold: 30
+
 ingress:
   enabled: true
   className: traefik

@@ -27,14 +27,6 @@ resources:
     memory: 1Gi
     cpu: 750m
 
-livenessProbe:
-  initialDelaySeconds: 30
-  periodSeconds: 10
-
-readinessProbe:
-  initialDelaySeconds: 10
-  periodSeconds: 5
-
 # Chart 2.0.0 templates reference these keys though defaults omit them.
 podDisruptionBudget:
   enabled: false
