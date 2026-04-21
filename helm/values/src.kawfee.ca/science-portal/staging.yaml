@@ -74,10 +74,10 @@ startupProbe:
 ingress:
   enabled: true
   className: traefik
-  annotations: {}
+  annotations:
+    argocd.argoproj.io/ignore-healthcheck: "true"
   hosts:
     - host: src.kawfee.ca
       paths:
         - path: /science-portal
           pathType: Prefix
-  tls: []
