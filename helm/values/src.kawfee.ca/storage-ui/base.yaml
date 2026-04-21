@@ -21,6 +21,7 @@ securityContext:
 
 deployment:
   storageUI:
+    image: at88mph/storage-ui:SNAPSHOT
     imagePullPolicy: IfNotPresent
     gmsID: ivo://cadc.nrc.ca/gms
 
