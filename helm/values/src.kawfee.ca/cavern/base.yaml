@@ -53,11 +53,11 @@ deployment:
     identityManagerClass: org.opencadc.auth.StandardIdentityManager
 
     # Rename the application from the default "cavern" to "arc".
-    applicationName: "arc"
+    applicationName: "cavern"
 
     # The endpoint to serve this from.  Defaults to /cavern.  If the applicationName is changed, then this should match.
     # Don't forget to update your registry entries!
-    endpoint: "/arc"
+    endpoint: "/cavern"
 
     # Resources provided to the Arc service.
     resources:
@@ -81,6 +81,7 @@ volumeInit:
   podSecurityContext:
     seccompProfile:
       type: RuntimeDefault
+
   # Container securityContext for the merge-uws-db-credentials init container only.
   securityContext:
     allowPrivilegeEscalation: false
