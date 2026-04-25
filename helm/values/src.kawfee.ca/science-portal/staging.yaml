@@ -7,25 +7,31 @@ replicaCount: 1
 image:
   pullPolicy: Always
 
+ingress:
+  enabled: true
+  hosts:
+    - host: src.kawfee.ca
+      paths:
+        - path: /science-portal
+          pathType: Prefix
+
 app:
-  basePath: /science-portal
-  useCanfar: false
-  experimental: false
-
   api:
-    storage: https://src.kawfee.ca/cavern/nodes/home/
-    skaha: https://src.kawfee.ca/skaha
-    srcSkaha: https://src.kawfee.ca/skaha
-    cavern: https://src.kawfee.ca/cavern
-    srcCavern: https://src.kawfee.ca/cavern
-    timeoutMs: "30000"
+    storage: "https://src.kawfee.ca/arc/nodes/home/"
+    skaha: "https://src.kawfee.ca/skaha"
+  public:
+    api:
+      skaha: "https://src.kawfee.ca/skaha"
+    services:
+      storageManagement: "https://src.kawfee.ca/storage/list"
+      sciencePortal: "https://src.kawfee.ca/science-portal"
 
-  publicApi:
-    skaha: https://src.kawfee.ca/skaha
-    cavern: https://src.kawfee.ca/cavern
-    srcSkaha: https://src.kawfee.ca/skaha
-    srcCavern: https://src.kawfee.ca/cavern
-    timeoutMs: "30000"
+  auth:
+    trustHost: true
+    nextauthUrl: https://src.kawfee.ca
+    authSecret:
+      existingSecret: science-portal-secrets
+      secretKey: auth-secret
 
   oidc:
     enabled: true
@@ -38,44 +44,7 @@ app:
       existingSecret: science-portal-oidc-secret-src
       secretKey: oidc-client-secret
 
-  auth:
-    trustHost: true
-    nextauthUrl: https://src.kawfee.ca
-    authSecret:
-      existingSecret: science-portal-secrets
-      secretKey: auth-secret
-
-livenessProbe:
-  httpGet:
-    port: 3000
-    path: /science-portal
-  initialDelaySeconds: 30
-  periodSeconds: 10
-  timeoutSeconds: 3
-  failureThreshold: 3
-
-readinessProbe:
-  httpGet:
-    port: 3000
-    path: /science-portal/api/health
-  initialDelaySeconds: 10
-  periodSeconds: 5
-  timeoutSeconds: 3
-  failureThreshold: 3
-
-startupProbe:
-  httpGet:
-    port: 3000
-    path: /science-portal
-  periodSeconds: 10
-  timeoutSeconds: 3
-  failureThreshold: 30
-
 ingress:
-  enabled: true
-  className: traefik
-  annotations:
-    argocd.argoproj.io/ignore-healthcheck: "true"
   hosts:
     - host: src.kawfee.ca
       paths:

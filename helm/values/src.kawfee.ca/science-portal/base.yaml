@@ -19,6 +19,32 @@ securityContext:
       - ALL
   readOnlyRootFilesystem: false
 
+livenessProbe:
+  httpGet:
+    port: 3000
+    path: /science-portal
+  initialDelaySeconds: 30
+  periodSeconds: 10
+  timeoutSeconds: 3
+  failureThreshold: 3
+
+readinessProbe:
+  httpGet:
+    port: 3000
+    path: /science-portal/api/health
+  initialDelaySeconds: 10
+  periodSeconds: 5
+  timeoutSeconds: 3
+  failureThreshold: 3
+
+startupProbe:
+  httpGet:
+    port: 3000
+    path: /science-portal
+  periodSeconds: 10
+  timeoutSeconds: 3
+  failureThreshold: 30
+
 resources:
   requests:
     memory: 500Mi
@@ -33,3 +59,9 @@ podDisruptionBudget:
 
 networkPolicy:
   enabled: false
+
+ingress:
+  enabled: true
+  className: traefik
+  annotations:
+    argocd.argoproj.io/ignore-healthcheck: "true"
